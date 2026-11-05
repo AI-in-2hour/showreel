@@ -4,7 +4,13 @@
 
 ## 에이전트 필수 행동 지침
 
-1. 사용자가 모션그래픽 영상, 쇼릴, 홍보/소개/티저 영상 제작을 요청하면 **반드시 현재 폴더의 [`SKILL.md`](./SKILL.md)를 먼저 읽고** 그 절차(0단계 환경 점검 ~ 11단계 자동 검수·납품 보고)를 엄격히 따르세요.
+1. **자동 환경 세팅 (수강생이 명령어를 직접 치지 않게 할 것)**:
+   - 사용자가 "설치해줘", "세팅해줘"라고 하거나 바로 영상 제작을 요청했을 때, 먼저 `python scripts/preflight.py`를 실행해 환경을 점검하세요.
+   - 만약 `node`, `ffmpeg`, `python`, `numpy`, `pillow`, `playwright-core` 중 설치되지 않은 항목이 있다면 **사용자에게 명령어를 치라고 안내하지 말고, 에이전트가 직접 `run_command`(`BypassSandbox: true`)를 사용해 자동으로 설치**해 주세요.
+     - Windows: `winget install --accept-package-agreements --accept-source-agreements OpenJS.NodeJS.LTS Gyan.FFmpeg` 등
+     - macOS: `brew install node ffmpeg` 등
+     - 패키지: `python -m pip install numpy pillow` 및 `cd scripts && npm install`
+2. 사용자가 모션그래픽 영상, 쇼릴, 홍보/소개/티저 영상 제작을 요청하면 **반드시 현재 폴더의 [`SKILL.md`](./SKILL.md)를 먼저 읽고** 그 절차(0단계 환경 점검 ~ 11단계 자동 검수·납품 보고)를 엄격히 따르세요.
 2. 이 워크스페이스의 스크립트 폴더 경로(`$S`)는 `./scripts` 입니다.
    - 환경 점검: `python scripts/preflight.py`
    - 새 프로젝트 생성: `python scripts/new_project.py <프로젝트폴더> --ratio 16:9 --duration <초>`

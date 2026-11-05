@@ -74,7 +74,19 @@ flowchart LR
 
 ## 설치 및 시작하기 (수업·실습 가이드)
 
-### 방법 A. 이 저장소를 그대로 워크스페이스로 열기 (가장 간편 · 수업 권장)
+### 방법 A. 명령어 없이 안티그라비티에게 "말로" 다 설치시키기 (가장 간편 · 수업 강력 권장)
+
+터미널 명령어를 전혀 몰라도 됩니다. **Google Antigravity**와 **Chrome 브라우저**만 설치한 뒤, 안티그라비티 채팅창에 아래 문장을 그대로 복사해서 붙여넣으세요:
+
+```text
+https://github.com/AI-in-2hour/showreel 이 깃허브 저장소를 내 컴퓨터에 다운로드하고, 쇼릴 영상 제작에 필요한 프로그램(Git, Node.js, Python, FFmpeg, numpy, pillow, playwright-core) 중 없는 게 있으면 네가 직접 다 설치해서 세팅 완료해 줘!
+```
+
+* 안티그라비티가 실행 권한(Approve/Allow)을 물어보면 **승인 버튼만 눌러주면** 알아서 다운로드부터 환경 점검(`preflight.py`)까지 끝냅니다.
+
+---
+
+### 방법 B. 터미널 명령어로 직접 클론하기
 
 ```bash
 git clone https://github.com/AI-in-2hour/showreel.git

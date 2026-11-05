@@ -69,7 +69,7 @@ description: 한국어 모션그래픽 영상(이력서용 쇼릴·홍보 영상
 
 오래 걸리는 작업(조사, TTS, 음악 생성, 이미지 생성, 최종 렌더)은 `run_command`의 백그라운드 실행이나 `invoke_subagent`로 돌리고 그동안 다음 단계를 진행한다. `sleep`으로 기다리지 않는다. 구간이 여러 개인 영상은 구간마다 서브에이전트(`invoke_subagent`, `TypeName: "self"`)에 나눠 맡겨 동시에 만들 수 있다(`references/engine.md`의 "나눠 만들기").
 
-## 0. 환경 점검
+## 0. 환경 점검 및 자동 설치
 
 ```bash
 python <S>/preflight.py
@@ -77,6 +77,7 @@ python <S>/preflight.py
 
 결과의 "쓸 수 있는 경로"를 콘셉트에 반영한다.
 
+- **필수 도구(`node`, `ffmpeg`, `numpy`, `Pillow`, `playwright-core`)가 없을 때**: 사용자에게 설치 명령어를 복사해서 치라고 하지 말고, **에이전트가 직접 `run_command`(`BypassSandbox: true`)로 설치를 수행**해 준다(Windows는 `winget`, macOS는 `brew`, 파이썬은 `pip install numpy pillow`, 노드는 `npm install`).
 - **이미지 생성**: Antigravity 내장 `image-generator` 서브에이전트(`invoke_subagent`에서 `TypeName: "image-generator"`)를 기본으로 사용한다. 이미지가 불필요한 콘셉트면 코드로 그린 그래픽(DOM·Canvas·WebGL·3D)과 사용자 제공 사진으로 구성한다.
 - **ElevenLabs 키가 없을 때**: 나레이션이 없어도 되는 쇼릴·티저 요청이면 묻지 않고 바로 `synth_music.py` 합성 음악 + 타이포그래피·모션그래픽 버전으로 진행한다. 나레이션이 꼭 필요한 요청이면 `preflight.py`가 출력하는 키 발급 절차를 안내하거나 음악·화면 버전으로 먼저 제작한다.
 - **고른 보이스가 막힐 때**(Free 플랜은 라이브러리 보이스를 쓸 수 없다): `python <S>/eleven.py voices --lang ko`로 쓸 수 있는 보이스를 고르거나 플랜 업그레이드를 안내한다.
