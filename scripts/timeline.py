@@ -31,6 +31,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
 def envelope(path, dt, db_floor=None):
@@ -61,11 +64,11 @@ def main():
     a = ap.parse_args()
     sp = Path(a.script).resolve()
     proj = sp.parent
-    cfg = json.loads(sp.read_text())
+    cfg = json.loads(sp.read_text(encoding="utf-8"))
     fps = cfg.get("fps", 30)
     dur = float(cfg.get("duration", 60))
     vo_dir = proj / "audio" / "vo"
-    rep = json.loads((vo_dir / "report.json").read_text()) if (vo_dir / "report.json").exists() else {}
+    rep = json.loads((vo_dir / "report.json").read_text(encoding="utf-8")) if (vo_dir / "report.json").exists() else {}
     cues, errors, warns = {}, [], []
 
     def resolve(x, ctx=""):
@@ -90,7 +93,7 @@ def main():
     ma = a.music_analysis or (cfg.get("music") or {}).get("analysis")
     ma_path = (Path(ma) if Path(ma).is_absolute() else proj / ma) if ma else None
     if ma_path and ma_path.exists():
-        an = json.loads(ma_path.read_text())
+        an = json.loads(ma_path.read_text(encoding="utf-8"))
         off = float((cfg.get("music") or {}).get("start", 0))
         hits = [round(h + off, 3) for h in an.get("hits", [])]
         for k, h in enumerate(hits):
@@ -110,7 +113,7 @@ def main():
         if not r or not alf.exists():
             errors.append(f"{lid}: 나레이션이 아직 없다 → narrate.py 먼저")
             continue
-        al = json.loads(alf.read_text())
+        al = json.loads(alf.read_text(encoding="utf-8"))
         s0, s1 = r["speech_start"], r["speech_end"]
         if "at" in l:
             start = resolve(l["at"], lid)
@@ -210,12 +213,12 @@ def main():
     tl = {"duration": dur, "fps": fps, "vo": [{k: x for k, x in v.items() if k != "env"} for v in vo], "cues": dict(sorted(cues.items(), key=lambda x: x[1])),
           "scenes": scenes, "sfx": sfx, "music": music,
           "music_tl": {k: x for k, x in music_tl.items() if k != "energy"} if music_tl else None}
-    (proj / "timeline.json").write_text(json.dumps(tl, ensure_ascii=False, indent=1))
+    (proj / "timeline.json").write_text(json.dumps(tl, ensure_ascii=False, indent=1), encoding="utf-8")
     reel = proj / "reel"
     reel.mkdir(exist_ok=True)
     page_tl = {"duration": dur, "cues": tl["cues"], "scenes": scenes, "music": music_tl,
                "vo": [{k: v[k] for k in ("id", "text", "sub", "nosub", "start", "end", "words", "env")} for v in vo]}
-    (reel / "timeline.js").write_text("// timeline.py 가 만든다 — 직접 고치지 말고 script.json 을 고친 뒤 다시 실행\nwindow.TL = " + json.dumps(page_tl, ensure_ascii=False) + ";\n")
+    (reel / "timeline.js").write_text("// timeline.py 가 만든다 — 직접 고치지 말고 script.json 을 고친 뒤 다시 실행\nwindow.TL = " + json.dumps(page_tl, ensure_ascii=False) + ";\n", encoding="utf-8")
 
     # ── 보고 ──
     speech = sum(v["end"] - v["start"] for v in vo)

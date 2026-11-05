@@ -3,9 +3,8 @@
 ## 목차
 
 - 어떤 이미지를 쓸지 정하기
-- codex-image로 생성하기
-- 사람이 나오는 사진풍 이미지(photoreal)
-- 실제 대상을 닮게 만들기(참조 이미지)
+- Antigravity 내장 Gemini (image-generator)로 생성하기
+- 사람이 나오는 사진풍 이미지 프롬프트 설계
 - 실제 사진 쓰기
 - 후처리와 확인
 - 영상에 넣는 방식
@@ -18,22 +17,19 @@
 | 기업·제품 | 공식 로고·제품 화면 + 코드로 그린 UI 목업. 생성 이미지는 배경 질감으로 |
 | 행사 | 생성 인물은 뒷모습·실루엣·군중. 연사는 실명·소속 텍스트만 |
 | 연구·데이터 | 코드로 그린 도식(캔버스·SVG). "설명을 위해 그린 그림" 고지 |
-| 반려동물·제품 | 실제 사진을 참조로 붙여 같은 대상을 새 장면에 생성(`codex_ref_image.sh`) |
+| 반려동물·제품 | 실제 사진을 참조하거나 특징을 상세히 묘사해 새 장면에 생성 |
 | 이미지 없이 | 타이포·도형·파티클·데이터 시각화만으로 구성 |
 
-실존 인물의 얼굴은 생성하지 않는다. 사칭이나 오해를 부를 수 있다. 사용자가 "realphoto(photoreal)로 인물 사진을 만들어"라고 해도, 실존 인물이면 실제 사진을 쓰고 생성은 가상 인물·뒷모습에만 쓴다고 알린다.
+실존 인물의 얼굴은 생성하지 않는다. 사칭이나 오해를 부를 수 있다. 실존 인물이면 실제 사진을 쓰고 생성은 가상 인물·뒷모습에만 쓴다고 알린다.
 
-## codex-image로 생성하기
+## Antigravity 내장 Gemini (`image-generator`)로 생성하기
 
-```bash
-~/.claude/skills/codex-image/scripts/codex_imagegen_batch.sh <프로젝트>/assets/gen \
-  "<프롬프트>::01_stage.png" "<프롬프트>::02_city.png" ...
-```
+Antigravity 환경에서는 별도의 외부 CLI 설치 없이 내장된 **`image-generator`** 서브에이전트(`invoke_subagent` 도구에서 `TypeName: "image-generator"` 지정)를 호출해 고품질 이미지를 생성할 수 있다.
 
-- 5장씩 병렬로 돌고 장당 약 1분 걸린다. Bash `run_in_background`로 돌리고 그동안 다른 작업을 한다. 동시 생성 수는 스크립트에 5로 고정돼 있으니, 줄여야 하면(다른 작업과 사용량을 나눌 때) 한 번에 넘기는 항목 수를 줄인다.
-- 결과는 `assets/gen/`에, 로그는 `assets/gen/.codex-imagegen-logs/`에 남는다.
-- 실패("model is at capacity")한 것만 다시 돌린다. 이미 있는 파일은 목록에서 빼고 실행한다.
-- 해상도는 약 1.57MP다(16:9는 1672×941, 3:2는 1536×1024). 영상에서는 `prep_images.py`로 2400px까지 키운다.
+1. `invoke_subagent`로 `TypeName: "image-generator"`를 호출하며, 프롬프트와 원하는 비율(예: 16:9 가로 구도)을 전달한다.
+2. 서브에이전트가 생성된 이미지 파일 경로를 반환하면 `<프로젝트>/assets/gen/` 폴더로 복사(`01_stage.png`, `02_city.png` 등)한다.
+3. 여러 장이 필요하면 서브에이전트에 한 번에 요청하거나 여러 서브에이전트를 병렬로 띄우고 그동안 다른 작업(장면 코드 작성, 오디오 믹스 등)을 진행한다.
+4. 생성된 이미지는 `prep_images.py`로 레터박스 제거 및 2400px 업스케일을 거친다.
 
 ### 프롬프트 틀
 
@@ -59,50 +55,32 @@ foreground, two crew members seen only from behind as dark silhouettes with head
 the screens and console, deep shadows, slight haze, subtle film grain, slightly off-center framing. No readable text, no logos, no letters anywhere.
 ```
 
-## 사람이 나오는 사진풍 이미지(photoreal)
+## 사람이 나오는 사진풍 이미지 프롬프트 설계
 
-가상 인물이 나오는 실사풍 컷은 `photoreal` 스킬을 먼저 읽고 프롬프트를 만든다. 광고 화보처럼 매끈한 결과를 피하고 스마트폰 스냅처럼 보이게 하는 지시가 정리돼 있다.
+가상 인물이 나오는 실사풍 컷은 광고 화보처럼 매끈한 결과를 피하고 자연스러운 스냅처럼 보이게 설계한다.
 
-```bash
-python3 ~/.claude/skills/photoreal/scripts/build_prompt.py --subject "30대 한국인 엔지니어 세 명" --scene office \
-  --n 3 --level standard --lang en --emit-batch <프로젝트>/assets/gen
-```
-
-- 카메라 스펙(85mm, f/1.4)을 적으면 화보 쪽으로 간다.
-- "nobody looking at the camera", "framing tilted a degree or two", "phone camera noise"가 자연스러움에 효과가 있었다.
+- 카메라 스펙(85mm, f/1.4)을 적으면 과장된 화보 쪽으로 간다.
+- "nobody looking at the camera", "framing tilted a degree or two", "natural indoor lighting, subtle sensor grain"이 자연스러움에 효과가 좋다.
 - 생성 뒤 손가락 수, 눈동자, 글자 섞임, 나이를 확인한다.
-
-## 실제 대상을 닮게 만들기(참조 이미지)
-
-codex-image 배치 스크립트는 참조 이미지를 받지 않는다. 반려동물·제품·캐릭터처럼 실제 대상을 새 장면에 넣을 때는 이 스크립트를 쓴다.
-
-```bash
-sips -Z 1024 photo.jpg --out <프로젝트>/assets/refs/ref1.jpg      # 참조는 긴 변 1024px 로
-bash ~/.claude/skills/showreel/scripts/codex_ref_image.sh <프로젝트>/assets/gen/g01.png \
-  "<신원 특징을 글로 다시 적기> + <장면> + 가로 16:9 구도, 글자·로고 없음" <프로젝트>/assets/refs/ref1.jpg
-```
-
-- 신원 특징(털 무늬, 눈 색, 목걸이, 제품 색·형태)을 글로 다시 적어야 일관성이 유지됐다.
-- 한 장을 먼저 시험한 뒤 나머지를 최대 5개씩 백그라운드로 돌린다. 이미 만든 파일은 건너뛴다.
 
 ## 실제 사진 쓰기
 
 - 출처를 `research/photos.md`에 표로 남긴다: 파일명 · 원본 URL · 기사 URL · 해상도 · 내용 · 품질.
-- 받은 사진을 Read로 열어 본인인지 확인한다. 동명이인을 걸러 낸다.
+- 받은 사진을 `read_file`로 열어 본인인지 확인한다. 동명이인을 걸러 낸다.
 - 보도 사진·위촉장·명패처럼 서명·직인이 보이는 사진은 납품 보고에 "공개 전 확인"으로 표시한다.
 - 해상도가 낮은 기사 사진(500~800px)은 카드·폴라로이드 크기로만 쓰고, 전체 화면 배경에는 흐리게 처리해 쓴다.
 
 ## 후처리와 확인
 
 ```bash
-python3 scripts/prep_images.py <프로젝트>/assets/gen <프로젝트>/assets/photos --out <프로젝트>/assets/img [--blur] [--cutout]
-python3 scripts/prep_images.py --sheet <프로젝트>/assets/img --out <프로젝트>/qa/sheet_images.png
+python <S>/prep_images.py <프로젝트>/assets/gen <프로젝트>/assets/photos --out <프로젝트>/assets/img [--blur] [--cutout]
+python <S>/prep_images.py --sheet <프로젝트>/assets/img --out <프로젝트>/qa/sheet_images.png
 ```
 
 - 레터박스 검은 띠를 자동으로 잘라 내고, 긴 변 2400px로 맞추고, JPG 품질 92로 저장한다.
 - `--blur`: 전환·배경용 흐린 버전(`_blur.jpg`)
-- `--cutout`: macOS Vision으로 인물·피사체 누끼(`_cut.png`). 원본 픽셀은 바꾸지 않고 배경만 투명하게 한다. 처음 한 번 Swift로 컴파일한다.
-- 시트를 Read로 보고 다음을 다시 만든다: 손가락·얼굴 이상, 글자·로고 섞임, 팔레트에서 벗어난 컷, 레터박스가 남은 컷.
+- `--cutout`: 인물·피사체 누끼(`_cut.png`). macOS에서는 Vision을 쓰고, Windows/Linux에서는 `rembg`가 설치되어 있으면 활용할 수 있다.
+- 시트를 `read_file`로 보고 다음을 다시 만든다: 손가락·얼굴 이상, 글자·로고 섞임, 팔레트에서 벗어난 컷, 레터박스가 남은 컷.
 - 누끼마다 인물 크기와 위치가 다르면 연속으로 보여 줄 때 화면이 튄다. 알파 채널에서 머리 위치와 폭을 계산해 크기를 맞춘다.
 
 ## 영상에 넣는 방식

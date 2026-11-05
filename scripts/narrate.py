@@ -38,6 +38,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import eleven  # noqa: E402
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
 def norm(s):
@@ -103,7 +106,7 @@ def main():
 
     sp = Path(a.script).resolve()
     proj = sp.parent
-    cfg = json.loads(sp.read_text())
+    cfg = json.loads(sp.read_text(encoding="utf-8"))
     lines = cfg["lines"]
     out = proj / "audio" / "vo"
     out.mkdir(parents=True, exist_ok=True)
@@ -115,7 +118,7 @@ def main():
         if not (l.get("tts") or l.get("text", "")).strip():
             sys.exit(f"✗ {l['id']}: 텍스트가 비어 있다")
     rep_path = out / "report.json"
-    report = json.loads(rep_path.read_text()) if rep_path.exists() else {}
+    report = json.loads(rep_path.read_text(encoding="utf-8")) if rep_path.exists() else {}
 
     def job(i):
         l = lines[i]
@@ -139,7 +142,7 @@ def main():
             r = report[lid]
             alf = mp3.with_suffix(".align.json")
             if alf.exists():   # 정렬 해석 규칙이 바뀌어도 크레딧 없이 다시 계산되게
-                s0, s1 = speech_span(json.loads(alf.read_text()), r.get("dur", 0))
+                s0, s1 = speech_span(json.loads(alf.read_text(encoding="utf-8")), r.get("dur", 0))
                 r.update({"speech_start": round(s0, 3), "speech_end": round(s1, 3),
                           "rate": round(r.get("chars", 0) / max(0.1, s1 - s0), 2)})
                 if r.get("stt"):
@@ -198,7 +201,7 @@ def main():
         print(f"{lid:6s} {state:4s} {r.get('dur', 0):6.2f} {sp_len:6.2f} {r.get('rate', 0):5.1f} {('' if sim is None else f'{sim:.2f}'):>5s}{mark} {r.get('text', '')}")
         if sim is not None and not okv:
             print(f"       STT: {r.get('stt')}")
-    rep_path.write_text(json.dumps(report, ensure_ascii=False, indent=1))
+    rep_path.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"\n발화 합계 {total_speech:.1f}s · {total_chars}자(글자만, 공백·문장부호 제외) · 평균 {total_chars / max(0.1, total_speech):.1f}자/초")
     if cfg.get("duration"):
         d = float(cfg["duration"])

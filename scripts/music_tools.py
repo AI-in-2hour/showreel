@@ -27,6 +27,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 MOOD_STYLES = {
     "cinematic": (["epic cinematic trailer score", "hybrid orchestral with modern pulse synths", "big taiko and orchestral percussion",
@@ -60,7 +63,7 @@ def energy_words(e, mood="cinematic"):
 
 
 def cmd_plan(a):
-    spec = json.loads(Path(a.spec).read_text())
+    spec = json.loads(Path(a.spec).read_text(encoding="utf-8"))
     dur = float(spec["duration"])
     mood = spec.get("mood", "cinematic")
     if spec.get("global_styles"):          # 콘셉트가 정한 곡의 성격. 무드 기본 문구를 쓰지 않는다
@@ -150,7 +153,7 @@ def cmd_plan(a):
             print(f"  ! '{x['section_name']}'과 '{y['section_name']}' 묘사가 같다 — 뒤 섹션 style 에 악기 변화를 적을 것"
                   "(예: 'strings drop out, only ticking pulse', 'add brass stabs and choir', 'half-time drums')")
     out = Path(a.out) if a.out else Path(a.spec).with_name("plan.json")
-    out.write_text(json.dumps(plan, ensure_ascii=False, indent=1))
+    out.write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{out}: 섹션 {len(sections)}개 · " + " | ".join(f"{x['section_name']} {x['duration_ms'] / 1000:.1f}s" for x in sections))
 
 
@@ -256,7 +259,7 @@ def cmd_analyze(a):
            "beats": [round(float(b), 3) for b in beats], "downbeats": [round(float(b), 3) for b in downbeats],
            "hits": hits, "energy": energy}
     out = Path(a.out) if a.out else Path(a.file).with_name("analysis.json")
-    out.write_text(json.dumps(res, ensure_ascii=False))
+    out.write_text(json.dumps(res, ensure_ascii=False), encoding="utf-8")
     print(f"{out}\n길이 {res['duration']}s · 템포 {res['bpm']} BPM (1박 {period:.3f}s, 1마디 {period * 4:.3f}s) · 첫 다운비트 {downbeats[0] if len(downbeats) else 0:.2f}s")
     print("강한 히트: " + ", ".join(f"{t:.2f}" for t in hits[:40]))
     top = max(e[1] for e in energy)
@@ -276,7 +279,7 @@ def cmd_splice(a):
         x, y = part.split("-")
         segs.append([float(x), float(y)])
     if a.snap:
-        an = json.loads(Path(a.snap).read_text())
+        an = json.loads(Path(a.snap).read_text(encoding="utf-8"))
         grid = np.array(an.get("beats") or [])
         if len(grid):
             end = float(an.get("duration", 1e9))
@@ -296,7 +299,7 @@ def cmd_splice(a):
         cur = f"c{i}"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", a.src, "-filter_complex", ";".join(filt), "-map", f"[{cur}]",
                     "-ar", "48000", "-ac", "2", a.out], check=True)
-    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", a.out], capture_output=True, text=True)
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", a.out], capture_output=True, text=True, encoding="utf-8", errors="replace")
     pos, lay = 0.0, []
     for x, y in segs:
         lay.append(f"원본 {x:.3f}–{y:.3f}s → 결과 {pos:.3f}s")
@@ -328,7 +331,7 @@ def cmd_gap(a):
 
 
 def cmd_fit(a):
-    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", a.src], capture_output=True, text=True)
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", a.src], capture_output=True, text=True, encoding="utf-8", errors="replace")
     got = float(r.stdout.strip())
     want = a.dur
     tempo = got / want

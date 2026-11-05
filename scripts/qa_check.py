@@ -20,13 +20,16 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 
 def sh(cmd):
-    return subprocess.run(cmd, capture_output=True, text=True)
+    return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def main():
@@ -140,7 +143,7 @@ def main():
             issues.append(f"하얗게 튀는 프레임 {white}개(어두운 화면 사이 0.3초 안쪽) — 플래시 세기를 0.15 이하로")
     # 움직임: 멈춘 화면 비율·1초 넘는 멈춤·큰 움직임(그레인을 걸러 낸 64×36 프레임 기준 — motion_check.py 와 같다)
     import motion_check
-    tl_json = json.loads(Path(a.timeline).read_text()) if a.timeline and Path(a.timeline).exists() else None
+    tl_json = json.loads(Path(a.timeline).read_text(encoding="utf-8")) if a.timeline and Path(a.timeline).exists() else None
     mm = motion_check.measure(str(vid))
     rep.append(f"- 움직임: 멈춘 화면 {mm['still_ratio'] * 100:.0f}% · 큰 움직임 p90 {mm['p90']:.1f} · 1초 넘는 멈춤 {len(mm['still_runs'])}곳 (마지막 3초 제외)")
     rep.append("  - 초별: " + motion_check.spark(mm["per_second"]))
@@ -154,8 +157,8 @@ def main():
     if a.stt and au and a.timeline:
         import eleven
         import narrate
-        tl = json.loads(Path(a.timeline).read_text())
-        src = {l["id"]: l for l in json.loads(Path(a.script).read_text())["lines"]} if a.script else {}
+        tl = json.loads(Path(a.timeline).read_text(encoding="utf-8"))
+        src = {l["id"]: l for l in json.loads(Path(a.script).read_text(encoding="utf-8"))["lines"]} if a.script else {}
         mp3 = qa / "final_audio.mp3"
         sh(["ffmpeg", "-v", "error", "-y", "-i", str(vid), "-vn", "-ac", "1", "-ar", "22050", "-b:a", "96k", str(mp3)])
         res = eleven.stt(str(mp3))
@@ -181,7 +184,7 @@ def main():
           "", "## 사람이 볼 것(자동 검사로 못 잡음)",
           "- [ ] 시트에서: 글자 잘림·겹침, 자막과 그래픽 겹침, 빈 화면, 장면 누수, 한글 폰트 대체(기본 고딕), 오탈자·숫자",
           "- [ ] 첫 3초의 훅, 컷이 음악 히트에 맞는지, 엔드카드·CTA 가 충분히 크고 오래 보이는지",
-          "- [ ] 소리는 Claude 가 들을 수 없다 — 사용자에게 스피커·이어폰으로 들어 봐 달라고 요청"]
+          "- [ ] 소리는 에이전트가 직접 들을 수 없다 — 사용자에게 스피커·이어폰으로 들어 봐 달라고 요청"]
     (qa / "qa_report.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n".join(md))
     print(f"\n→ {qa / 'qa_report.md'}")

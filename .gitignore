@@ -15,7 +15,8 @@ __pycache__/
 .idea/
 .vscode/
 
-# Production output (projects are created outside this repository)
+# Local caches & production output
+assets/fonts_cache/
 *.wav
 out/
 qa/

@@ -23,12 +23,14 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { createRequire } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import crypto from 'node:crypto';
 
 const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let chromium;
 try { ({ chromium } = require('playwright-core')); }
-catch { console.error('playwright-core 가 없다. 한 번만: cd ' + path.dirname(new URL(import.meta.url).pathname) + ' && npm install'); process.exit(1); }
+catch { console.error('playwright-core 가 없다. 한 번만: cd "' + __dirname + '" && npm install'); process.exit(1); }
 
 const argv = process.argv.slice(2);
 const opt = {};
@@ -61,11 +63,12 @@ const MIME = {
 };
 
 function serve(rootDir) {
+  const normRoot = path.resolve(rootDir).toLowerCase();
   const server = http.createServer((req, res) => {
     const p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (p === '/favicon.ico') { res.writeHead(204); return res.end(); }
-    const file = path.join(rootDir, p === '/' ? pagePath : p);
-    if (!file.startsWith(rootDir)) { res.writeHead(403); return res.end(); }
+    const file = path.resolve(path.join(rootDir, p === '/' ? pagePath : p));
+    if (!file.toLowerCase().startsWith(normRoot)) { res.writeHead(403); return res.end(); }
     fs.stat(file, (err, st) => {
       if (err || !st.isFile()) { res.writeHead(404); return res.end('not found'); }
       const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
@@ -86,9 +89,19 @@ function serve(rootDir) {
 async function launch(W, H) {
   const args = ['--force-color-profile=srgb', '--hide-scrollbars', '--font-render-hinting=none', '--disable-lcd-text',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
+    '--allow-file-access-from-files',
     `--window-size=${W},${H}`, '--autoplay-policy=no-user-gesture-required', '--mute-audio'];
   const exe = process.env.REEL_CHROME_PATH;
-  const tries = exe ? [{ executablePath: exe }] : [{ channel: process.env.REEL_CHROME_CHANNEL || 'chrome' }, { channel: 'chromium' }, {}];
+  const winCandidates = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    path.join(os.homedir(), 'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'),
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  ].filter(p => fs.existsSync(p)).map(p => ({ executablePath: p }));
+  const tries = exe
+    ? [{ executablePath: exe }]
+    : [{ channel: process.env.REEL_CHROME_CHANNEL || 'chrome' }, ...winCandidates, { channel: 'msedge' }, { channel: 'chromium' }, {}];
   let last;
   for (const t of tries) {
     try { return await chromium.launch({ headless: true, args, ...t }); } catch (e) { last = e; }
@@ -99,7 +112,7 @@ async function launch(W, H) {
 
 const pageErrors = [];
 async function openPage(browser, url, W, H) {
-  const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: scale });
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
   page.on('pageerror', e => { pageErrors.push(String(e)); console.error('[pageerror]', String(e)); });
   page.on('console', m => { if (m.type() === 'error' || (m.type() === 'warning' && m.text().startsWith('[REEL]'))) console.error('[console]', m.text()); });
@@ -113,7 +126,7 @@ async function shot(p, t, W, H, fmt) {
   await p.page.evaluate(tt => window.__seek(tt), t);
   const { data } = await p.cdp.send('Page.captureScreenshot', {
     format: fmt, ...(fmt === 'jpeg' ? { quality } : {}), optimizeForSpeed: true, captureBeyondViewport: false,
-    clip: { x: 0, y: 0, width: W, height: H, scale: 1 },
+    clip: { x: 0, y: 0, width: W, height: H, scale },
   });
   return Buffer.from(data, 'base64');
 }
@@ -136,12 +149,15 @@ function run(cmd, args) {
   if (r.status !== 0) throw new Error(`${cmd} 종료 코드 ${r.status}`);
 }
 
-const server = await serve(root);
-const url = `http://127.0.0.1:${server.address().port}${pagePath}`;
-
+let server = null;
+let url;
 if (opt.serve) {
+  server = await serve(root);
+  url = `http://127.0.0.1:${server.address().port}${pagePath}`;
   console.log(`미리보기: ${url}\n(스페이스 재생 · ←→ 1초 · Shift+←→ 1프레임 · M 소리 · ?t=초) — Ctrl+C 로 종료`);
   await new Promise(() => {});
+} else {
+  url = pathToFileURL(path.join(dir, opt.page || 'index.html')).href;
 }
 
 // 메타 정보(길이·해상도) 먼저 읽기
@@ -242,7 +258,7 @@ try {
       await p.ctx.close();
     }));
     const list = path.join(segDir, 'concat.txt');
-    fs.writeFileSync(list, chunks.map(c => `file '${segName(c)}'`).join('\n'));
+    fs.writeFileSync(list, chunks.map(c => `file '${segName(c).replace(/\\/g, '/')}'`).join('\n'));
     run('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', '-movflags', '+faststart', out]);
     const secs = (Date.now() - t0) / 1000;
     console.log(`완료: ${out} (${secs.toFixed(1)}초, ${f1 - f0}프레임 × 서브 ${sub}, ${fps}fps, ${W * scale}x${H * scale}, 워커 ${n || 0})`);
@@ -250,7 +266,7 @@ try {
   }
 } finally {
   await browser.close();
-  server.close();
+  if (server) server.close();
 }
 if (pageErrors.length) {
   console.error(`페이지 오류 ${pageErrors.length}건 — 해당 장면의 코드를 고치고 결과물을 확인하라.`);

@@ -20,6 +20,9 @@ import sys
 from pathlib import Path
 
 from PIL import Image, ImageFilter, ImageOps
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = Path(__file__).resolve().parent
 EXTS = {".png", ".jpg", ".jpeg", ".webp", ".heic"}
@@ -46,7 +49,7 @@ def letterbox(im):
 def cutout_bin():
     b = HERE / "tools" / "cutout"
     if not b.exists():
-        r = subprocess.run(["swiftc", "-O", str(HERE / "tools" / "cutout.swift"), "-o", str(b)], capture_output=True, text=True)
+        r = subprocess.run(["swiftc", "-O", str(HERE / "tools" / "cutout.swift"), "-o", str(b)], capture_output=True, text=True, encoding="utf-8", errors="replace")
         if r.returncode != 0:
             print("누끼 도구 컴파일 실패(Xcode Command Line Tools 필요: xcode-select --install):\n" + r.stderr[-400:])
             return None
@@ -112,7 +115,7 @@ def main():
         if a.blur and not alpha:
             im.resize((im.width // 2, im.height // 2)).filter(ImageFilter.GaussianBlur(14)).save(out / f"{p.stem}_blur.jpg", quality=85)
         if cb:
-            r = subprocess.run([str(cb), str(dst), str(out / f"{p.stem}_cut.png")], capture_output=True, text=True)
+            r = subprocess.run([str(cb), str(dst), str(out / f"{p.stem}_cut.png")], capture_output=True, text=True, encoding="utf-8", errors="replace")
             print("  누끼: " + (r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-200:]))
 
 

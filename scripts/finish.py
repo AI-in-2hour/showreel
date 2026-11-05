@@ -17,11 +17,15 @@ import argparse
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
 def run(cmd):
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         raise SystemExit(f"실패: {' '.join(cmd[:6])} …\n{r.stderr[-800:]}")
     return r
@@ -38,7 +42,7 @@ def probe(path):
 
 def loud(path):
     r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-af", "ebur128=peak=true", "-f", "null", "-"],
-                       capture_output=True, text=True).stderr
+                       capture_output=True, text=True, encoding="utf-8", errors="replace").stderr
     s = r[r.rfind("Summary:"):]
     g = lambda k: float(re.search(k + r":\s+(-?[\d.]+)", s).group(1)) if re.search(k + r":\s+(-?[\d.]+)", s) else None
     return g("I"), g("LRA"), g("Peak")
@@ -98,7 +102,7 @@ def main():
     run(["ffmpeg", "-v", "error", "-y", "-ss", f"{pt:.3f}", "-i", str(master), "-frames:v", "1", "-q:v", "2", str(poster)])
     outs.append(poster)
     if a.timeline and Path(a.timeline).exists():
-        tl = json.loads(Path(a.timeline).read_text())
+        tl = json.loads(Path(a.timeline).read_text(encoding="utf-8"))
         vo = [x for x in tl.get("vo", []) if not x.get("nosrt")]   # nosub(번인 제외)는 SRT 에 남긴다
         if vo:
             lines = []

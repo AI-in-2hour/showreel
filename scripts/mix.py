@@ -21,9 +21,13 @@ import argparse
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 SR = 48000
 VO_CHAIN = ("highpass=f=70,equalizer=f=220:t=q:w=1.0:g=-2,equalizer=f=3200:t=q:w=1.1:g=3,"
@@ -106,7 +110,7 @@ def write(path, x, codec="pcm_f32le"):
 
 def loudness(path):
     r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-af", "ebur128=peak=true", "-f", "null", "-"],
-                       capture_output=True, text=True).stderr
+                       capture_output=True, text=True, encoding="utf-8", errors="replace").stderr
     summ = r[r.rfind("Summary:"):]
     I = float(re.search(r"I:\s+(-?[\d.]+) LUFS", summ).group(1))
     tp = re.search(r"Peak:\s+(-?[\d.inf]+) dBFS", summ)
@@ -130,7 +134,7 @@ def main():
 
     tlp = Path(a.timeline).resolve()
     proj = tlp.parent
-    tl = json.loads(tlp.read_text())
+    tl = json.loads(tlp.read_text(encoding="utf-8"))
     dur = float(tl["duration"])
     N = int(dur * SR)
     mute = set(x for x in a.mute.split(",") if x)
@@ -268,7 +272,7 @@ def main():
     pre = "alimiter=limit=0.85:attack=3:release=60:level=disabled"
     r = subprocess.run(["ffmpeg", "-hide_banner", "-i", f"{stem}_premaster.wav", "-af",
                         f"{pre},loudnorm=I={a.target}:TP={a.tp}:LRA=11:print_format=json", "-f", "null", "-"],
-                       capture_output=True, text=True).stderr
+                       capture_output=True, text=True, encoding="utf-8", errors="replace").stderr
     js = json.loads(r[r.rindex("{"): r.rindex("}") + 1])
     ln = (f"loudnorm=I={a.target}:TP={a.tp}:LRA=11:measured_I={js['input_i']}:measured_TP={js['input_tp']}:"
           f"measured_LRA={js['input_lra']}:measured_thresh={js['input_thresh']}:offset={js['target_offset']}:linear=true")

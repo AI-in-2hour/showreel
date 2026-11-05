@@ -1,9 +1,9 @@
 ---
 name: showreel
-description: 한국어 모션그래픽 영상(이력서용 쇼릴·홍보 영상·프로필 영상·티저·브랜드 필름·행사 홍보·제품 소개·교육 영상·메이킹 필름)을 콘셉트부터 납품까지 만드는 스킬. 정해 둔 무드나 템플릿을 고르지 않는다. 요청마다 콘셉트 후보를 여러 개 세워 가장 강한 것을 고르고, 구간마다 아트 디렉션을 새로 정해 코드(DOM·캔버스·WebGL 셰이더·3D)로 화면을 만든 뒤, 렌더한 프레임을 직접 보며 약한 구간을 다시 만드는 일을 반복한다. 음악·효과음·ElevenLabs 나레이션·codex-image 이미지·믹스·자동 검수까지 끝낸다. 사용자에게는 사용자만 아는 사실(대상·꼭 넣을 정보·자료 위치)만 묻고, 무드·길이·구성·나레이션 여부 같은 창작 결정은 스스로 내린다. '쇼릴', '모션그래픽', '애니메이션 영상 만들어줘', '홍보 영상', '소개 영상', '인물 소개 영상', '1분 영상', 'N초 영상', '이력서용 쇼릴', '놀라운 모션 그래픽 디자이너', '전력을 다해요', '키네틱 타이포', '나레이션 넣은 영상', '티저 영상', '하네스가 어떻게 동작하는지 영상으로' 같은 요청이면 영상이라는 말이 없어도 이 스킬을 쓴다. 실사 촬영본 컷 편집, 파일 자르기·변환만 하는 작업, Sora·Veo 같은 생성형 비디오 모델 호출, 슬라이드·PDF만 만드는 작업은 범위가 아니다.
+description: 한국어 모션그래픽 영상(이력서용 쇼릴·홍보 영상·프로필 영상·티저·브랜드 필름·행사 홍보·제품 소개·교육 영상·메이킹 필름)을 콘셉트부터 납품까지 만드는 Antigravity(Gemini) 스킬. 정해 둔 무드나 템플릿을 고르지 않는다. 요청마다 콘셉트 후보를 여러 개 세워 가장 강한 것을 고르고, 구간마다 아트 디렉션을 새로 정해 코드(DOM·캔버스·WebGL 셰이더·3D)로 화면을 만든 뒤, 렌더한 프레임을 직접 보며 약한 구간을 다시 만드는 일을 반복한다. 음악(ElevenLabs 또는 NumPy 합성)·효과음·나레이션·Gemini 이미지 생성(image-generator)·믹스·자동 검수까지 끝낸다. 사용자에게는 사용자만 아는 사실(대상·꼭 넣을 정보·자료 위치)만 묻고, 무드·길이·구성·나레이션 여부 같은 창작 결정은 스스로 내린다. '쇼릴', '모션그래픽', '애니메이션 영상 만들어줘', '홍보 영상', '소개 영상', '인물 소개 영상', '1분 영상', 'N초 영상', '이력서용 쇼릴', '놀라운 모션 그래픽 디자이너', '전력을 다해요', '키네틱 타이포', '나레이션 넣은 영상', '티저 영상', '하네스가 어떻게 동작하는지 영상으로' 같은 요청이면 영상이라는 말이 없어도 이 스킬을 쓴다.
 ---
 
-# 모션그래픽 쇼릴 제작
+# 모션그래픽 쇼릴 제작 (Antigravity / Gemini Edition)
 
 ## 이 스킬이 맞추는 기준
 
@@ -38,16 +38,24 @@ description: 한국어 모션그래픽 영상(이력서용 쇼릴·홍보 영상
 | --- | --- |
 | 길이·규격 | 60초, 16:9 1920×1080, 30fps. 릴스·쇼츠 용도면 9:16 1080×1920 |
 | 나레이션 | 요청에 있거나 내용을 말로 전해야 할 때만 넣는다. 쇼릴은 음악과 화면으로 전한다. 넣을 때는 콘셉트에 맞는 보이스를 `references/audio.md`의 보이스 표와 `eleven.py voices --lang ko`에서 고른다. Marcus `ibCGc01503OQd2R6i1n1`은 한국어 낭독 설정(`eleven_multilingual_v2`, stability 0.45 · similarity 0.8 · style 0.4)을 검증해 둔 보이스다 |
-| 음악 | ElevenLabs Music(유료 플랜). 쓸 수 없으면 `synth_music.py` 합성 음악 |
-| 이미지 | 콘셉트에 필요할 때만 codex-image로 생성한다. 실존 인물의 얼굴은 생성하지 않고 실제 사진만 쓴다 |
+| 음악 | ElevenLabs Music(유료 플랜). 키나 플랜이 없으면 `synth_music.py` NumPy 합성 음악(API 키 불필요) |
+| 이미지 | 콘셉트에 필요할 때만 Antigravity 내장 **`image-generator`** 서브에이전트(`invoke_subagent`)로 생성한다. 실존 인물의 얼굴은 생성하지 않고 실제 사진만 쓴다 |
 | 산출물 | 마스터 MP4, 공유용 MP4, 포스터 JPG, 자막 SRT(나레이션이 있을 때), 제작노트 |
 | 음량 | -14 LUFS. `mix.py`가 true peak -2.0 dBTP로 마스터링하고, 검수 기준은 -1.0 dBTP 이하다 |
 
-## 작업 위치
+## 작업 위치와 스크립트 경로
 
-모든 작업 파일은 프로젝트 폴더 아래에 만든다. `/tmp`, `/private/tmp`, 세션 scratchpad에는 아무것도 저장하지 않는다. 세션이 끝나면 임시 폴더가 지워져 재생성 명령·검수 시트·생성 이미지·나레이션 테이크를 다시 쓸 수 없게 된다. 검수용 스틸과 시트는 `<프로젝트>/qa/`, 중간 렌더는 `<프로젝트>/out/`에 둔다.
+모든 작업 파일은 프로젝트 폴더 아래에 만든다. `/tmp`, `/private/tmp`, 세션 임시 폴더에는 프로젝트 산출물을 저장하지 않는다. 검수용 스틸과 시트는 `<프로젝트>/qa/`, 중간 렌더는 `<프로젝트>/out/`에 둔다.
 
-프로젝트 폴더는 사용자가 지정하지 않으면 현재 작업 폴더 아래에 영문 소문자 이름(`./<주제-slug>/`)으로 만든다.
+프로젝트 폴더는 사용자가 지정하지 않으면 현재 워크스페이스 폴더 아래에 영문 소문자 이름(`./<주제-slug>/`)으로 만든다.
+
+**스크립트 폴더(`$S`) 경로**:
+이 `SKILL.md` 파일이 위치한 폴더 아래의 `scripts/` 디렉터리다:
+- 이 저장소를 직접 워크스페이스로 연 경우: `./scripts`
+- 프로젝트 스킬로 설치한 경우: `.agents/skills/showreel/scripts`
+- 전역 스킬로 설치한 경우: `~/.gemini/config/skills/showreel/scripts`
+
+명령을 실행할 때는 현재 스킬 위치의 `scripts` 절대 경로를 사용한다. (Windows에서는 `python`, macOS/Linux에서는 `python3` 또는 `python`을 사용한다.)
 
 ## 진행 방식
 
@@ -59,29 +67,27 @@ description: 한국어 모션그래픽 영상(이력서용 쇼릴·홍보 영상
 
 질문은 1단계에서 사용자만 아는 사실에 한해서 한다. 그 뒤로는 묻지 않고 납품까지 진행한다. 진행 중 막히는 일(보이스 불가, 음악 API 불가, 확인되지 않는 사실)은 아래 대체 경로로 처리하고 납품 보고에 적는다.
 
-오래 걸리는 작업(조사, TTS, 음악 생성, 이미지 생성, 최종 렌더)은 Bash `run_in_background`나 서브에이전트로 돌리고 그동안 다음 단계를 진행한다. `sleep`으로 기다리지 않는다. 구간이 여러 개인 영상은 구간마다 서브에이전트에 나눠 맡겨 동시에 만들 수 있다(`references/engine.md`의 "나눠 만들기").
-
-스크립트 경로는 이 스킬 폴더 기준이다(`~/.claude/skills/showreel/scripts/`). 아래에서 `S=~/.claude/skills/showreel/scripts`로 줄여 쓴다.
+오래 걸리는 작업(조사, TTS, 음악 생성, 이미지 생성, 최종 렌더)은 `run_command`의 백그라운드 실행이나 `invoke_subagent`로 돌리고 그동안 다음 단계를 진행한다. `sleep`으로 기다리지 않는다. 구간이 여러 개인 영상은 구간마다 서브에이전트(`invoke_subagent`, `TypeName: "self"`)에 나눠 맡겨 동시에 만들 수 있다(`references/engine.md`의 "나눠 만들기").
 
 ## 0. 환경 점검
 
 ```bash
-python3 $S/preflight.py
+python <S>/preflight.py
 ```
 
 결과의 "쓸 수 있는 경로"를 콘셉트에 반영한다.
 
-- **codex CLI나 이미지 스킬이 없을 때**: codex-image·photoreal·codex-cli 스킬은 https://github.com/revfactory/skills 에 있다. 출력된 설치 명령을 사용자에게 안내한다. 설치하지 않으면 코드로 그린 그래픽과 사용자 제공 사진으로 구성한다. 사용자가 "realphoto"라고 부르는 스킬의 실제 이름은 `photoreal`이다.
-- **ElevenLabs 키가 없을 때**: 나레이션이 필요한 요청이면 `preflight.py`가 출력하는 키 발급 절차를 안내하고, 키를 받기 전까지 음악·화면 버전으로 진행할 수 있다고 알린다. 음악은 합성 경로로 만든다.
-- **고른 보이스가 막힐 때**(Free 플랜은 라이브러리 보이스를 쓸 수 없다): `python3 $S/eleven.py voices --lang ko`로 쓸 수 있는 보이스를 고르거나 플랜 업그레이드를 안내한다.
+- **이미지 생성**: Antigravity 내장 `image-generator` 서브에이전트(`invoke_subagent`에서 `TypeName: "image-generator"`)를 기본으로 사용한다. 이미지가 불필요한 콘셉트면 코드로 그린 그래픽(DOM·Canvas·WebGL·3D)과 사용자 제공 사진으로 구성한다.
+- **ElevenLabs 키가 없을 때**: 나레이션이 없어도 되는 쇼릴·티저 요청이면 묻지 않고 바로 `synth_music.py` 합성 음악 + 타이포그래피·모션그래픽 버전으로 진행한다. 나레이션이 꼭 필요한 요청이면 `preflight.py`가 출력하는 키 발급 절차를 안내하거나 음악·화면 버전으로 먼저 제작한다.
+- **고른 보이스가 막힐 때**(Free 플랜은 라이브러리 보이스를 쓸 수 없다): `python <S>/eleven.py voices --lang ko`로 쓸 수 있는 보이스를 고르거나 플랜 업그레이드를 안내한다.
 
 ## 1. 요청 읽기
 
 `references/brief.md`의 "물을 것과 묻지 않을 것"을 따른다.
 
 - 묻는 것: 요청에 없고 조사로도 알 수 없는 사실. 대상이 누구·무엇인지, 실존 대상의 꼭 넣을 정보(이름 표기, 일시, 장소, URL, CTA), 사용자 자료의 위치.
-- 묻지 않는 것: 무드, 팔레트, 길이, 화면비, 구성, 나레이션 여부, 이미지 사용 여부. Claude가 정하고 납품 보고에 적는다.
-- 위 핵심 요청처럼 Claude 자신이 대상이면 아무것도 묻지 않고 바로 시작한다.
+- 묻지 않는 것: 무드, 팔레트, 길이, 화면비, 구성, 나레이션 여부, 이미지 사용 여부. 에이전트(Gemini)가 스스로 정하고 납품 보고에 적는다.
+- 에이전트 자신이 대상이거나 수업·데모용 쇼릴 요청이면 아무것도 묻지 않고 바로 시작한다.
 
 ## 2. 콘셉트
 
@@ -98,14 +104,14 @@ python3 $S/preflight.py
 먼저 프로젝트를 만든다. 폴더 구조, 엔진, 한글 폰트, 렌더러 의존성이 한 번에 준비된다.
 
 ```bash
-python3 $S/new_project.py <프로젝트> --ratio 16:9 --duration 60 [--fonts "Hahmlet:wght@300;900"]
+python <S>/new_project.py <프로젝트> --ratio 16:9 --duration 60 [--fonts "Hahmlet:wght@300;900"]
 ```
 
-기본 서체 세트 밖의 Google Fonts 한글 서체는 `--fonts`로 더한다(여러 번 쓸 수 있고, 다시 실행해도 유지된다).
+기본 서체 세트 밖의 Google Fonts 한글 서체는 `--fonts`로 더한다(여러 번 쓸 수 있고, 다시 실행해도 유지된다). 로컬이나 `assets/fonts_cache`에 폰트가 아직 없어 다운로드가 필요하면 네트워크가 허용된 상태(`BypassSandbox: true`)에서 실행한다.
 
 `reel/scenes.js`는 빈 장면 파일로 생긴다. API 사용 예시는 `reel/_example_scenes.js`에 있다. 예시의 화면을 출발점으로 삼지 말고 콘셉트에서 새로 쓴다.
 
-인물·기업·행사·제품이 주제면 조사를 서브에이전트에 백그라운드로 맡긴다. 프롬프트는 `references/brief.md`의 "조사 요청 프롬프트"에 있다.
+인물·기업·행사·제품이 주제면 조사를 서브에이전트(`invoke_subagent` — `TypeName: "research"` 또는 `"self"`)에 맡기거나 `search_web`으로 조사한다. 프롬프트는 `references/brief.md`의 "조사 요청 프롬프트"에 있다.
 
 - 결과는 `research/research.md`에 남긴다. 사실마다 출처 URL과 확실도(확인/단일 출처/미확인)를 적는다.
 - 영상에 넣는 숫자와 사실은 출처가 있는 것만 쓴다. 사용자가 준 정보가 조사 결과와 다르면 조사 결과를 따르고, 납품 보고의 "요청과 다르게 반영한 것"에 적는다.
@@ -121,24 +127,29 @@ python3 $S/new_project.py <프로젝트> --ratio 16:9 --duration 60 [--fonts "Ha
   - 구간·장면 경계는 `scenes`에 적는다. 시작·끝에 마디 큐(`bar9`)와 히트 큐(`music.hit2`)를 쓸 수 있다.
   - 나레이션이 없으면 `"lines": []`로 두고 `scenes`·`sfx`·`music`만 채운다. `narrate.py`는 건너뛰고 `timeline.py`부터 실행한다.
   - 나레이션이 있으면 화면 표기(`text`)와 발음 표기(`tts`)를 나눠 쓰고, 장면 전환과 맞출 단어에 `cues`로 이름을 붙인다. 분량은 60초에 발음 표기 기준 255자(공백 제외)를 넘기지 않는다. 넘치면 화면이 나레이션을 따라가지 못한다.
-- 날짜가 나오면 요일을 달력으로 대조한다(`python3 -c "import datetime;print(datetime.date(2026,11,20).strftime('%A'))"`). 맞지 않으면 요일을 빼고 보고에 적는다.
+- 날짜가 나오면 요일을 달력으로 대조한다(`python -c "import datetime;print(datetime.date(2026,11,20).strftime('%A'))"`). 맞지 않으면 요일을 빼고 보고에 적는다.
 
 ## 5. 오디오를 먼저 만든다
 
 화면의 시각은 음악 박·히트와 나레이션 단어에서 정해지므로 오디오를 먼저 확정한다. 쇼릴은 음악이 편집의 기준이다. 음악 스펙의 섹션을 `concept.md`의 구간과 맞추고, 곡의 장르·악기·질감은 `global_styles`로 콘셉트에 맞게 적는다. 자세한 기준은 `references/audio.md`에 있다.
 
 ```bash
-python3 $S/narrate.py <프로젝트>/script.json --stt            # 나레이션이 있을 때. ✗ 줄은 고쳐서 다시
-python3 $S/music_tools.py plan <프로젝트>/audio/music/spec.json # 음악 스펙 → ElevenLabs 구성 플랜
-python3 $S/eleven.py music <프로젝트>/audio/music/music.mp3 --plan <프로젝트>/audio/music/plan.json
-#   402(유료 플랜 필요)면: python3 $S/synth_music.py music <프로젝트>/audio/music/spec.json <프로젝트>/audio/music/music.wav
-python3 $S/music_tools.py analyze <프로젝트>/audio/music/music.mp3   # 템포·히트 → 구간 경계를 히트에 맞춘다
-python3 $S/eleven.py sfx-kit <프로젝트>/audio/sfx --names impact,riser   # 범용 프리셋이 필요한 곳만(합성: synth_music.py sfx). 구간 재질에 맞는 소리는 eleven.py sfx "prompt"
-python3 $S/timeline.py <프로젝트>/script.json --music-analysis audio/music/analysis.json
+# [A] ElevenLabs API 키가 있을 때:
+python <S>/narrate.py <프로젝트>/script.json --stt            # 나레이션이 있을 때. ✗ 줄은 고쳐서 다시
+python <S>/music_tools.py plan <프로젝트>/audio/music/spec.json # 음악 스펙 → ElevenLabs 구성 플랜
+python <S>/eleven.py music <프로젝트>/audio/music/music.mp3 --plan <프로젝트>/audio/music/plan.json
+
+# [B] ElevenLabs Music 불가(402 또는 키 없음)일 때 — NumPy 합성 음악 & 효과음(API 키 불필요):
+python <S>/synth_music.py music <프로젝트>/audio/music/spec.json <프로젝트>/audio/music/music.wav
+python <S>/synth_music.py sfx <프로젝트>/audio/sfx --names impact,riser,whoosh,sub_boom,braam,shimmer,ui_blip,logo_hit
+
+# 공통: 음악 박·히트 분석 및 타임라인 생성
+python <S>/music_tools.py analyze <프로젝트>/audio/music/music.wav   # (또는 music.mp3) 템포·히트 → 구간 경계를 히트에 맞춘다
+python <S>/timeline.py <프로젝트>/script.json --music-analysis audio/music/analysis.json
 ```
 
 - 음악 섹션은 4마디 단위로 잡는다(120 BPM이면 8초). ElevenLabs Music은 그 단위로 곡을 만들기 때문에, 드롭이 원하는 시각보다 늦게 나오면 `music_tools.py splice`로 빌드업 끝 몇 박 뒤에 드롭 구간을 이어 붙여 당긴다.
-- 효과음은 화면의 움직임마다 맞춰 설계한다. 프리셋 이름만 고르지 말고 `eleven.py sfx "prompt"`로 구간의 재질(종이, 유리, 액체, 전자음)에 맞는 소리를 만든다.
+- 효과음은 화면의 움직임마다 맞춰 설계한다. ElevenLabs 키가 있으면 `eleven.py sfx "prompt"`로 구간의 재질(종이, 유리, 액체, 전자음)에 맞는 소리를 만들고, 키가 없으면 `synth_music.py sfx`의 23종 프리셋을 사용한다.
 
 `timeline.py`가 `timeline.json`(믹서·검수용)과 `reel/timeline.js`(화면용 큐·단어 시각·소리 크기 곡선)를 만든다. 겹침·길이 초과·큐 누락이 있으면 ✗로 알려 주므로 모두 고친 뒤 장면을 만든다. 나레이션 문구나 시각을 바꿀 때는 `script.json`만 고치고 `narrate.py`(바뀐 줄만 다시 생성)와 `timeline.py`를 다시 실행한다.
 
@@ -146,11 +157,9 @@ python3 $S/timeline.py <프로젝트>/script.json --music-analysis audio/music/a
 
 콘셉트에 사진이나 생성 이미지가 필요할 때만 한다. `references/images.md`를 읽는다.
 
-- 생성: `~/.claude/skills/codex-image/scripts/codex_imagegen_batch.sh <프로젝트>/assets/gen "프롬프트::이름.png" …` (5장씩 병렬, 장당 약 1분)
-- 사람이 나오는 사진풍 이미지: `photoreal` 스킬로 프롬프트를 만든다.
-- 실제 대상을 닮게 만들 때: `$S/codex_ref_image.sh`로 참조 사진을 붙인다.
-- 후처리: `python3 $S/prep_images.py <프로젝트>/assets/gen --out <프로젝트>/assets/img [--cutout]`. 레터박스 제거, 확대, 누끼를 한다.
-- 확인: `python3 $S/prep_images.py --sheet <프로젝트>/assets/img --out <프로젝트>/qa/sheet_images.png`로 시트를 만들어 Read로 본다. 손가락·글자·로고가 섞인 이미지는 다시 만든다.
+- **생성**: Antigravity 내장 `image-generator` 서브에이전트(`invoke_subagent` — `TypeName: "image-generator"`)를 호출해 생성한 이미지를 `<프로젝트>/assets/gen/` 폴더로 복사한다.
+- **후처리**: `python <S>/prep_images.py <프로젝트>/assets/gen --out <프로젝트>/assets/img [--blur] [--cutout]`. 레터박스 제거, 확대, 블러본 생성을 한다.
+- **확인**: `python <S>/prep_images.py --sheet <프로젝트>/assets/img --out <프로젝트>/qa/sheet_images.png`로 시트를 만들어 **`read_file` 도구로 직접 열어 본다.** 손가락·글자·로고가 섞인 이미지는 다시 만든다.
 
 ## 7. 스타일 프레임
 
@@ -169,32 +178,32 @@ python3 $S/timeline.py <프로젝트>/script.json --music-analysis audio/music/a
 - 하드 컷·상태 전환은 큐보다 0.5프레임 앞에 둔다(`cue(x) - 0.5/fps`). 모션 블러 셔터가 프레임 앞뒤에 걸쳐 있어서, 그래야 큐 프레임에 새 상태가 정확히 보인다. 장면 경계도 같다: `REEL.scene({ start: cue('scene.s02') - 0.5 / REEL.fps, end: cue('scene.s02.end') - 0.5 / REEL.fps, … })`. 정수 초 큐를 그대로 쓰면 `--sub 4` 렌더에서 경계 프레임에 앞뒤 구간이 섞인다.
 - 첫 프레임을 어떻게 시작할지는 콘셉트가 정한다. 빈 화면·정적·페이드로 시작한다면 의도를 `concept.md`에 적는다. 의도하지 않은 빈 프레임으로 시작하지 않는다.
 - 색은 `concept.md`의 구간별 아트 디렉션을 따른다. 실존 브랜드가 주제면 공식 색(사이트 CSS·로고)을 쓴다. `reel/index.html`의 색 토큰은 회색 자리 표시 값이므로 그대로 두지 않는다.
-- 3분 넘는 영상이나 구간이 많은 쇼릴은 구간마다 `scenes_sNN.js`로 나누고 서브에이전트에 나눠 맡길 수 있다(`engine.md`의 "나눠 만들기").
+- 3분 넘는 영상이나 구간이 많은 쇼릴은 구간마다 `scenes_sNN.js`로 나누고 서브에이전트(`invoke_subagent`)에 나눠 맡길 수 있다(`engine.md`의 "나눠 만들기").
 
 ## 9. 초안 렌더와 비평 반복
 
 ```bash
-node $S/render.mjs --dir <프로젝트>/reel --stills <시작+0.5>,<큐+0.4>,<끝-0.6> --outdir <프로젝트>/qa/stills_<장면>   # 장면 하나를 만들 때마다
-node $S/render.mjs --dir <프로젝트>/reel --every 0.5 --outdir <프로젝트>/qa/stills     # 전체 스틸(모든 장면이 생긴 뒤)
-python3 $S/contact_sheet.py --dir <프로젝트>/qa/stills --out <프로젝트>/qa/sheet_stills.png --timeline <프로젝트>/timeline.json
-node $S/render.mjs --dir <프로젝트>/reel --out <프로젝트>/out/draft.mp4 --scale 0.5          # 초안(60초에 약 30초)
-python3 $S/contact_sheet.py --video <프로젝트>/out/draft.mp4 --every 1 --out <프로젝트>/qa/sheet_draft.png
-python3 $S/motion_check.py <프로젝트>/out/draft.mp4 --timeline <프로젝트>/timeline.json   # 실수로 멈춘 구간·큰 움직임 부족·섬광 과다를 시각과 장면 이름으로 알려 준다
-python3 $S/contact_sheet.py --video <프로젝트>/out/draft.mp4 --around <구간 경계 초들> --frames 3 --out <프로젝트>/qa/sheet_cuts.png
+node <S>/render.mjs --dir <프로젝트>/reel --stills <시작+0.5>,<큐+0.4>,<끝-0.6> --outdir <프로젝트>/qa/stills_<장면>   # 장면 하나를 만들 때마다
+node <S>/render.mjs --dir <프로젝트>/reel --every 0.5 --outdir <프로젝트>/qa/stills     # 전체 스틸(모든 장면이 생긴 뒤)
+python <S>/contact_sheet.py --dir <프로젝트>/qa/stills --out <프로젝트>/qa/sheet_stills.png --timeline <프로젝트>/timeline.json
+node <S>/render.mjs --dir <프로젝트>/reel --out <프로젝트>/out/draft.mp4 --scale 0.5          # 초안(60초에 약 30초)
+python <S>/contact_sheet.py --video <프로젝트>/out/draft.mp4 --every 1 --out <프로젝트>/qa/sheet_draft.png
+python <S>/motion_check.py <프로젝트>/out/draft.mp4 --timeline <프로젝트>/timeline.json   # 실수로 멈춘 구간·큰 움직임 부족·섬광 과다를 시각과 장면 이름으로 알려 준다
+python <S>/contact_sheet.py --video <프로젝트>/out/draft.mp4 --around <구간 경계 초들> --frames 3 --out <프로젝트>/qa/sheet_cuts.png
 ```
 
-만든 시트는 **반드시 Read로 열어 직접 본다.** 렌더한 프레임을 보지 않고 완료라고 하지 않는다.
+만든 시트는 **반드시 `read_file` 도구로 열어 직접 본다.** 렌더한 프레임을 보지 않고 완료라고 하지 않는다.
 
-초안마다 `references/qa.md`의 "비평"을 따라 구간별로 유지·고침·다시 만듦을 판정하고 `qa/critique_NN.md`에 남긴다. 가장 약한 구간은 수치를 조정하기보다 방향을 바꿔 다시 만든다. 한 번 고치고 끝내지 않는다. 모든 구간이 "유지"가 되고 `qa.md`의 기술 점검표를 통과할 때까지 반복한다. 최종 렌더 전에 한 번은 만든 맥락이 없는 서브에이전트에게 시트·프레임 띠·비평 질문만 주고 판정을 받아 `qa/critique_NN.md`에 남긴다. 만든 쪽이 놓친 문제를 찾기 위해서다.
+초안마다 `references/qa.md`의 "비평"을 따라 구간별로 유지·고침·다시 만듦을 판정하고 `qa/critique_NN.md`에 남긴다. 가장 약한 구간은 수치를 조정하기보다 방향을 바꿔 다시 만든다. 한 번 고치고 끝내지 않는다. 모든 구간이 "유지"가 되고 `qa.md`의 기술 점검표를 통과할 때까지 반복한다. 최종 렌더 전에 한 번은 만든 맥락이 없는 서브에이전트(`invoke_subagent`)에게 시트·프레임 띠·비평 질문만 주고 판정을 받아 `qa/critique_NN.md`에 남긴다. 만든 쪽이 놓친 문제를 찾기 위해서다.
 
 `motion_check.py`가 △를 내면 그 시각이 의도한 정지인지 확인하고, 아니면 사건을 더한다. 섬광 ✗는 의도와 관계없이 초안 단계에서 고친다(광과민성). 최종 렌더 뒤에 고치면 렌더를 다시 해야 한다. 초안(모션 블러 없음)에서 통과해도 최종 렌더(`--sub 4`)에서는 컷이 두 프레임에 섞여 섬광이 늘 수 있다. 밝은 바탕에서 컷이 잦은 구간은 최종 렌더 전에 그 구간만 `render.mjs --from <초> --to <초> --sub 4 --scale 0.5 --out <프로젝트>/out/chk_<구간>.mp4`로 뽑아 `motion_check.py`로 확인한다. 렌더러가 종료 코드 2로 끝나면 페이지 오류가 난 것이니 로그의 오류부터 고친다.
 
 ## 10. 최종 렌더·믹스·마감
 
 ```bash
-node $S/render.mjs --dir <프로젝트>/reel --out <프로젝트>/out/video.mp4 --sub 4 --format png   # 모션 블러. 60초에 약 3~5분, 백그라운드로
-python3 $S/mix.py <프로젝트>/timeline.json
-python3 $S/finish.py --video <프로젝트>/out/video.mp4 --audio <프로젝트>/audio/mix.wav \
+node <S>/render.mjs --dir <프로젝트>/reel --out <프로젝트>/out/video.mp4 --sub 4 --format png   # 모션 블러. 60초에 약 3~5분
+python <S>/mix.py <프로젝트>/timeline.json
+python <S>/finish.py --video <프로젝트>/out/video.mp4 --audio <프로젝트>/audio/mix.wav \
   --name "<제목>_<길이>s" --outdir <프로젝트>/out --timeline <프로젝트>/timeline.json
 ```
 
@@ -205,19 +214,19 @@ python3 $S/finish.py --video <프로젝트>/out/video.mp4 --audio <프로젝트>
 ## 11. 자동 검수와 납품 보고
 
 ```bash
-python3 $S/qa_check.py <프로젝트>/out/<이름>.mp4 --timeline <프로젝트>/timeline.json --script <프로젝트>/script.json --stt
+python <S>/qa_check.py <프로젝트>/out/<이름>.mp4 --timeline <프로젝트>/timeline.json --script <프로젝트>/script.json [--stt]
 ```
 
-규격, 음량, 너무 어두운 구간, 섬광, 멈춘 화면, 완성 믹스의 받아쓰기(숫자 오인식 포함)를 검사하고 `qa/qa_report.md`와 최종 시트를 만든다. "고칠 것"을 모두 처리하고 최종 시트를 Read로 본 뒤 납품한다. STT에서 한 번만 틀린 줄은 한 번 더 돌려 두 번 다 틀릴 때 고친다.
+규격, 음량, 너무 어두운 구간, 섬광, 멈춘 화면, 완성 믹스의 받아쓰기(나레이션과 ElevenLabs 키가 있을 때 `--stt`)를 검사하고 `qa/qa_report.md`와 최종 시트를 만든다. "고칠 것"을 모두 처리하고 최종 시트를 `read_file`로 본 뒤 납품한다. STT에서 한 번만 틀린 줄은 한 번 더 돌려 두 번 다 틀릴 때 고친다.
 
 납품 보고와 `제작노트.md` 형식은 `references/qa.md`의 "납품"에 있다. 다음을 반드시 넣는다.
 
-- 산출물의 **절대 경로 표**
+- 산출물의 **절대 경로 표** (클릭 가능한 마크다운 파일 링크 포함)
 - 구간 구성표와 고른 콘셉트, 버린 후보
-- Claude가 정한 것(무드·길이·나레이션 여부 등)과 요청과 다르게 반영한 것
+- 에이전트가 정한 것(무드·길이·나레이션 여부 등)과 요청과 다르게 반영한 것
 - 공개 전 확인할 것: 사진 사용 허락, 단일 출처 사실, 시점이 지나면 틀리는 정보, AI 생성 인물이 가상이라는 점
 - 재생성 명령
-- 사운드를 직접 들어 봐 달라는 요청. Claude는 소리를 들을 수 없고 수치로만 확인했다.
+- 사운드를 직접 들어 봐 달라는 요청. 에이전트는 소리를 들을 수 없고 수치로만 확인했다.
 
 ## 지킬 것
 
@@ -239,7 +248,6 @@ python3 $S/qa_check.py <프로젝트>/out/<이름>.mp4 --timeline <프로젝트>
 | 나레이션에 에코·울림이 많음 | `--hall` 없이 `mix.py`와 `finish.py`만 다시 돌린다(영상 재렌더 불필요). 리버브를 남길 때는 `mix.py`의 "말 끝 잔향"이 ✓일 때까지 `--hall`을 낮춘다 |
 | 완성 믹스에서 말이 묻힘 | 타격음을 핵심 단어에서 0.2~0.3초 비키기, 해당 줄 `gain_db` +2~3, `--duck` 0.8 |
 | 오류 JSON이 mp3로 저장됨 | `eleven.py`가 막는다. 직접 curl을 쓰지 말고 스크립트를 쓴다 |
-| Python에서 ElevenLabs 호출 시 SSL 오류 | 검증을 끄지 않는다. `eleven.py`는 curl을 쓰므로 이 문제가 없다 |
 | 화면 글꼴이 기본 고딕으로 나옴 | 렌더 로그의 "폰트" 줄 확인, `reel/fonts/fonts.css`에 그 굵기가 있는지 확인 |
 | WebGL 화면이 검게 나옴 | 컨텍스트를 `preserveDrawingBuffer: true`로 만들었는지, render 안에서 그리는지 확인한다. 라이브러리는 `reel/lib/`에 파일로 두고 불러온다 |
 | 장면 경계에서 빈 화면·잔상 | `contact_sheet.py --around`로 ±3프레임을 보고 퇴장을 컷 0.1초 전에 끝낸다 |
@@ -254,7 +262,7 @@ python3 $S/qa_check.py <프로젝트>/out/<이름>.mp4 --timeline <프로젝트>
 | `references/brief.md` | 1·2단계: 물을 것과 묻지 않을 것, 콘셉트 만들기와 `concept.md` 양식, 시간·크레딧 추정, 조사·사진 수집 프롬프트 |
 | `references/story.md` | 4단계: 쇼릴 구성, 용도별 참고 구성, 길이별 기준값, 카피·발음 표기 규칙, 원고 양식 |
 | `references/audio.md` | 5·10단계: 보이스·모델·설정, ElevenLabs 키·플랜, 음악·효과음, 믹스 기준 |
-| `references/images.md` | 6단계: 이미지 생성·실사 사진·누끼·후처리 |
+| `references/images.md` | 6단계: 이미지 생성(Antigravity `image-generator`)·실사 사진·누끼·후처리 |
 | `references/design.md` | 2·7·8단계: 아트 디렉션 정하기, 뻔한 화면, 움직임 원칙, 리듬, 한글 타이포, 안전 영역, 전환 |
 | `references/engine.md` | 8단계: 엔진 API, 장면 작성법, WebGL·3D, 나눠 만들기 |
 | `references/techniques.md` | 8단계: 검증된 기법 코드 22종과 싱크·첫 프레임·섬광·결정성 규칙 |

@@ -295,7 +295,7 @@
   function seek(t) {
     for (const sc of scenes) {
       const on = t >= sc._s && t < sc._e;
-      if (on !== sc._on) { sc.el.style.display = on ? '' : 'none'; sc._on = on; }
+      if (on !== sc._on) { sc.el.style.display = on ? (sc._display || '') : 'none'; sc._on = on; }
       if (on && sc.render) {
         const dur = sc._e - sc._s;
         sc.render.call(sc, t - sc._s, { t, dur, p: (t - sc._s) / dur });
@@ -336,7 +336,7 @@
     }
     for (const o of overlays) if (o.setup) pending.push(o.setup(o.layer === 'cam' ? cam : o.layer === 'back' ? back : top));
     await Promise.all(pending);
-    for (const sc of scenes) sc.el.style.display = 'none';
+    for (const sc of scenes) { sc._display = sc.el.style.display || ''; sc.el.style.display = 'none'; }
     await Promise.all(waits);
     await Promise.all([...document.images].map(im => (im.complete ? im.decode().catch(() => null) : new Promise(r => { im.onload = im.onerror = r; }))));
     window.__fonts = [...new Set([...document.fonts].filter(f => f.status === 'loaded').map(f => `${f.family.replace(/"/g, '')} ${f.weight}`))];

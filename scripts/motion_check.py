@@ -21,8 +21,12 @@ import argparse
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 import numpy as np
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 STILL = 0.35
 
@@ -53,7 +57,7 @@ def flash_check(path):
     """qa_check.py 와 같은 섬광 판정. (섬광 시각 목록, 1초에 3회를 넘는 창의 시작 시각 목록, fps)"""
     W_, H_ = 480, 270
     out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate",
-                          "-of", "default=nw=1:nk=1", path], capture_output=True, text=True).stdout.split()
+                          "-of", "default=nw=1:nk=1", path], capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.split()
     fps_s = out[0].strip(",") if out else "30/1"
     n_, d_ = (fps_s.split("/") + ["1"])[:2]
     fps = float(n_) / float(d_ or 1)
@@ -124,7 +128,7 @@ def main():
     ap.add_argument("--json")
     a = ap.parse_args()
     m = measure(a.video, a.skip_end)
-    tl = json.load(open(a.timeline)) if a.timeline else None
+    tl = json.loads(Path(a.timeline).read_text(encoding="utf-8")) if a.timeline else None
     print(f"움직임: 중앙 {m['median']:.2f} · 큰 움직임 p90 {m['p90']:.1f} · 멈춘 화면 {m['still_ratio'] * 100:.0f}% (마지막 {a.skip_end:g}초 제외)")
     print("초별 움직임: " + spark(m["per_second"]))
     issues = verdict(m)
@@ -148,7 +152,7 @@ def main():
     else:
         print(f"✓ 섬광 {len(fl)}회, 1초에 3회 넘는 구간 없음")
     if a.json:
-        json.dump({**m, "issues": issues}, open(a.json, "w"), ensure_ascii=False, indent=1)
+        json.dump({**m, "issues": issues}, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     sys.exit(0)
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""검수용 콘택트 시트(라벨 붙은 썸네일 격자)를 만든다. 만든 PNG 는 Read 로 열어 직접 본다.
+"""검수용 콘택트 시트(라벨 붙은 썸네일 격자)를 만든다. 만든 PNG 는 read_file 로 열어 직접 본다.
 
 사용법
   스틸 폴더:   contact_sheet.py --dir qa/stills --out qa/sheet_stills.png
@@ -17,12 +17,22 @@ import glob
 import json
 import os
 import re
-import subprocess
 import shutil
+import subprocess
+import sys
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+SKILL = Path(__file__).resolve().parent.parent
 FONTS = [
+    str(SKILL / "assets" / "fonts_cache" / "NotoSerifKR-700.ttf"),
+    "C:/Windows/Fonts/malgunbd.ttf",
+    "C:/Windows/Fonts/malgun.ttf",
     os.path.expanduser("~/Library/Fonts/PretendardVariable.ttf"),
     "/System/Library/Fonts/AppleSDGothicNeo.ttc",
     "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
@@ -32,18 +42,18 @@ FONTS = [
 
 def font(size):
     for f in FONTS:
-        if os.path.exists(f):
-            try:
+        try:
+            if os.path.exists(f):
                 return ImageFont.truetype(f, size)
-            except OSError:
-                pass
+        except OSError:
+            pass
     return ImageFont.load_default()
 
 
 def probe(video):
     out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
                           "stream=r_frame_rate,nb_frames,duration:format=duration", "-of", "json", video],
-                         capture_output=True, text=True, check=True).stdout
+                         capture_output=True, text=True, encoding="utf-8", errors="replace", check=True).stdout
     d = json.loads(out)
     st = d["streams"][0]
     num, den = st["r_frame_rate"].split("/")
@@ -56,7 +66,7 @@ def extract(video, frames, tmp):
     """정확한 프레임 번호들을 한 번에 뽑는다."""
     frames = sorted(set(frames))
     paths = {}
-    for i in range(0, len(frames), 40):  # select 식에 eq() 가 100개를 넘으면 ffmpeg 가 메모리 오류로 멈춘다
+    for i in range(0, len(frames), 40):
         part = frames[i:i + 40]
         expr = "+".join(f"eq(n\\,{f})" for f in part)
         pat = os.path.join(tmp, f"b{i:05d}_%04d.png")
@@ -124,7 +134,7 @@ def main():
     ap.add_argument("--per", type=int, default=24)
     a = ap.parse_args()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-    tl = json.load(open(a.timeline)) if a.timeline and os.path.exists(a.timeline) else None
+    tl = json.loads(Path(a.timeline).read_text(encoding="utf-8")) if a.timeline and os.path.exists(a.timeline) else None
 
     if a.dir:
         files = sorted(glob.glob(os.path.join(a.dir, "*.png")) + glob.glob(os.path.join(a.dir, "*.jpg")))
@@ -161,8 +171,7 @@ def main():
                     x += step
             frames = [min(round(t * fps), round(dur * fps) - 1) for t in ts]
             items_spec = [(f, f"{f / fps:.2f}s f{f} {scene_at(tl, f / fps)}".strip()) for f in frames]
-        # 작업 파일은 프로젝트 안(시트 옆 .frames/)에 두고 끝나면 지운다 — 시스템 임시 폴더를 쓰지 않는다
-        tmp = os.path.join(os.path.dirname(os.path.abspath(a.out)), f".frames_{os.getpid()}")   # 동시에 여러 시트를 뽑아도 섞이지 않게
+        tmp = os.path.join(os.path.dirname(os.path.abspath(a.out)), f".frames_{os.getpid()}")
         shutil.rmtree(tmp, ignore_errors=True)
         os.makedirs(tmp)
         try:
