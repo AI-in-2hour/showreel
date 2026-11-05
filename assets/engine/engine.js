@@ -224,7 +224,17 @@
     return v;
   };
 
-  const css = (el, o) => { for (const k in o) el.style[k] = o[k]; return el; };
+  const UNITLESS = new Set([
+    'opacity', 'zIndex', 'fontWeight', 'lineHeight', 'flex', 'flexGrow',
+    'flexShrink', 'order', 'zoom', 'scale', 'gridColumn', 'gridRow', 'aspectRatio'
+  ]);
+  const css = (el, o) => {
+    for (const k in o) {
+      const v = o[k];
+      el.style[k] = (typeof v === 'number' && v !== 0 && !UNITLESS.has(k)) ? `${v}px` : v;
+    }
+    return el;
+  };
   const h = (tag, cls, parent, html) => {
     const el = document.createElement(tag);
     if (cls) el.className = cls;
