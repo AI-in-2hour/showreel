@@ -18,4 +18,6 @@
    - 이미지 생성: Antigravity 내장 `image-generator` 서브에이전트(`invoke_subagent` — `TypeName: "image-generator"`) 활용
    - 렌더러: `node scripts/render.mjs ...`
    - 검수 시트 확인: 생성된 PNG 시트(`qa/*.png`)는 반드시 `read_file` 도구로 직접 열어서 시각적으로 확인하세요.
-3. 상세 가이드는 [`references/`](./references/) 폴더의 각 문서(`brief.md`, `story.md`, `audio.md`, `images.md`, `design.md`, `engine.md`, `techniques.md`, `qa.md`)를 단계별로 읽어 반영하세요.
+4. **완성된 영상 바로 찾기 지원 (바탕화면/다운로드 자동 복사 & 탐색기 열기)**:
+   - 영상 마스터링(`finish.py`)이 끝나면 수강생이 숨김 폴더(`.gemini` 등)에서 파일을 찾느라 헤매지 않도록 **`바탕화면/쇼릴_결과물` 및 `다운로드/쇼릴_결과물` 폴더로 완성 파일(`.mp4`, `_공유용.mp4`, `_포스터.jpg`)을 자동 복사하고 탐색기(`explorer.exe` / `open`)로 폴더를 열어주세요.** (샌드박스에서 바탕화면 쓰기가 제한될 경우 `BypassSandbox: true`로 복사·열기를 실행하고, 최종 답변 맨 위에 클릭 가능한 파일 링크와 탐색기 주소창 붙여넣기용 경로를 함께 안내하세요.)
+5. 상세 가이드는 [`references/`](./references/) 폴더의 각 문서(`brief.md`, `story.md`, `audio.md`, `images.md`, `design.md`, `engine.md`, `techniques.md`, `qa.md`)를 단계별로 읽어 반영하세요.

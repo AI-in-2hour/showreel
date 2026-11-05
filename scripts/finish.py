@@ -15,13 +15,51 @@
 """
 import argparse
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+
+def export_easy_access(outs, no_open=False):
+    """수강생·사용자가 숨김 폴더(.gemini 등)를 헤매지 않도록 바탕화면/다운로드에 자동 복사하고 탐색기를 연다."""
+    home = Path.home()
+    candidates = [
+        home / "Desktop",
+        home / "OneDrive" / "바탕 화면",
+        home / "OneDrive" / "Desktop",
+        home / "Downloads",
+    ]
+    copied_dirs = []
+    for base in candidates:
+        try:
+            if base.exists():
+                dest = base / "쇼릴_결과물"
+                dest.mkdir(parents=True, exist_ok=True)
+                for f in outs:
+                    shutil.copy2(f, dest / f.name)
+                copied_dirs.append(dest)
+        except Exception:
+            pass
+    if copied_dirs:
+        print("바탕화면/다운로드 자동 복사 완료:")
+        for d in copied_dirs:
+            print(f"  {d.resolve()}")
+    if not no_open and outs:
+        target_dir = copied_dirs[0] if copied_dirs else outs[0].resolve().parent
+        try:
+            if sys.platform == "win32":
+                subprocess.Popen(["explorer.exe", str(target_dir)])
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", str(target_dir)])
+        except Exception:
+            pass
+    return copied_dirs
 
 
 def run(cmd):
@@ -64,6 +102,7 @@ def main():
     ap.add_argument("--poster", type=float)
     ap.add_argument("--timeline")
     ap.add_argument("--no-web", action="store_true")
+    ap.add_argument("--no-open", action="store_true", help="완료 후 탐색기/Finder 자동 열기 생략")
     a = ap.parse_args()
     od = Path(a.outdir)
     od.mkdir(parents=True, exist_ok=True)
@@ -140,6 +179,7 @@ def main():
         else:
             print(f"{f.name:40s} {size:>8s}")
     print("모든 산출물:\n" + "\n".join(f"  {f.resolve()}" for f in outs))
+    export_easy_access(outs, no_open=a.no_open)
     if not ok:
         print("✗ 규격 문제가 있다 — 위 표시를 확인할 것")
 
