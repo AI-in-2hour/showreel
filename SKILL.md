@@ -69,6 +69,47 @@ description: 한국어 모션그래픽 영상(이력서용 쇼릴·홍보 영상
 
 오래 걸리는 작업(조사, TTS, 음악 생성, 이미지 생성, 최종 렌더)은 `run_command`의 백그라운드 실행이나 `invoke_subagent`로 돌리고 그동안 다음 단계를 진행한다. `sleep`으로 기다리지 않는다. 구간이 여러 개인 영상은 구간마다 서브에이전트(`invoke_subagent`, `TypeName: "self"`)에 나눠 맡겨 동시에 만들 수 있다(`references/engine.md`의 "나눠 만들기").
 
+## 빠른 모드 (수업·시연용)
+
+요청에 "빠르게", "빠른 모드", "수업용", "시연용", "실습" 중 하나가 있으면 빠른 모드로 진행한다. 목표는 **요청 문장 하나만으로, 묻지 않고, 짧은 시간 안에 15초 영상을 납품하는 것**이다. "이 스킬이 맞추는 기준" 표(놀라운·역동적인·한글버전)는 그대로 지키고, 반복 횟수와 준비 단계만 줄인다.
+
+| 단계 | 일반 모드 | 빠른 모드 |
+| --- | --- | --- |
+| 1 요청 읽기 | 사용자만 아는 사실을 묻는다 | 묻지 않는다. 요청 문장에 있는 정보만 쓴다 |
+| 길이·구성 | 기본 60초 | **15초**(`--duration 15`), 구간 3개 이하 |
+| 2 콘셉트 | 후보 3개 이상 비교 | 후보 1개. `concept.md`는 5줄 안팎 |
+| 3 조사·사진 | 조사하고 사진을 모은다 | **건너뛴다.** 웹 검색·사진 수집을 하지 않고, 요청 문장의 사실만 화면에 쓴다 |
+| 5 오디오 | ElevenLabs 또는 합성 | 나레이션 없음. `synth_music.py` 합성 음악, 효과음 3개 이하 |
+| 6 이미지 | 필요하면 생성 | 생성하지 않는다. 한글 타이포와 코드 그래픽만 쓴다 |
+| 7 스타일 프레임 | 구간마다 만든다 | 건너뛴다 |
+| 9 초안·비평 | 모든 구간이 "유지"가 될 때까지 반복, 외부 서브에이전트 판정 | 전체 스틸 시트를 **한 번** `read_file`로 보고 글자 잘림·겹침·의도하지 않은 빈 화면만 고친다. 외부 판정은 생략한다 |
+| 10 최종 렌더 | `--sub 4 --format png` | 모션 블러 없이 기본값(`--sub 1`, jpeg) |
+| 11 검수 | `qa_check.py` 후 고칠 것 모두 처리 | `qa_check.py`를 돌리고 ✗만 고친다 |
+
+빠른 모드 명령 순서:
+
+```bash
+python <S>/preflight.py
+python <S>/new_project.py <프로젝트> --ratio 16:9 --duration 15
+# concept.md(짧게), script.json("lines": [], 구간 3개 이하), audio/music/spec.json 작성
+python <S>/synth_music.py music <프로젝트>/audio/music/spec.json <프로젝트>/audio/music/music.wav
+python <S>/synth_music.py sfx <프로젝트>/audio/sfx --names impact,whoosh,logo_hit
+python <S>/music_tools.py analyze <프로젝트>/audio/music/music.wav
+python <S>/timeline.py <프로젝트>/script.json --music-analysis audio/music/analysis.json
+# reel/scenes.js 작성
+node <S>/render.mjs --dir <프로젝트>/reel --every 1 --outdir <프로젝트>/qa/stills
+python <S>/contact_sheet.py --dir <프로젝트>/qa/stills --out <프로젝트>/qa/sheet_stills.png --timeline <프로젝트>/timeline.json
+node <S>/render.mjs --dir <프로젝트>/reel --out <프로젝트>/out/video.mp4
+python <S>/mix.py <프로젝트>/timeline.json
+python <S>/finish.py --video <프로젝트>/out/video.mp4 --audio <프로젝트>/audio/mix.wav \
+  --name "<제목>_15s" --outdir <프로젝트>/out --timeline <프로젝트>/timeline.json
+python <S>/qa_check.py <프로젝트>/out/<제목>_15s.mp4 --timeline <프로젝트>/timeline.json --script <프로젝트>/script.json
+```
+
+- **섬광(광과민성) ✗는 빠른 모드에서도 반드시 고친다.**
+- 바탕화면·다운로드 `쇼릴_결과물` 복사와 폴더 열기는 일반 모드와 같다.
+- 납품 보고 맨 앞의 저장 위치 안내는 그대로 넣고, "빠른 모드로 만들었으며 일반 모드로 다시 요청하면 조사·비평 반복을 거쳐 더 다듬어진다"는 한 줄을 덧붙인다.
+
 ## 0. 환경 점검 및 자동 설치
 
 ```bash

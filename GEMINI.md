@@ -10,7 +10,7 @@
      - Windows: `winget install --accept-package-agreements --accept-source-agreements OpenJS.NodeJS.LTS Gyan.FFmpeg` 등
      - macOS: `brew install node ffmpeg` 등
      - 패키지: `python -m pip install numpy pillow` 및 `cd scripts && npm install`
-2. 사용자가 모션그래픽 영상, 쇼릴, 홍보/소개/티저 영상 제작을 요청하면 **반드시 현재 폴더의 [`SKILL.md`](./SKILL.md)를 먼저 읽고** 그 절차(0단계 환경 점검 ~ 11단계 자동 검수·납품 보고)를 엄격히 따르세요.
+2. 사용자가 모션그래픽 영상, 쇼릴, 홍보/소개/티저 영상 제작을 요청하면 **반드시 현재 폴더의 [`SKILL.md`](./SKILL.md)를 먼저 읽고** 그 절차(0단계 환경 점검 ~ 11단계 자동 검수·납품 보고)를 엄격히 따르세요. 요청에 "빠르게", "빠른 모드", "수업용", "시연용", "실습"이 있으면 `SKILL.md`의 **"빠른 모드"** 표대로 단계를 줄여 15초 영상을 묻지 않고 바로 만드세요.
 2. 이 워크스페이스의 스크립트 폴더 경로(`$S`)는 `./scripts` 입니다.
    - 환경 점검: `python scripts/preflight.py`
    - 새 프로젝트 생성: `python scripts/new_project.py <프로젝트폴더> --ratio 16:9 --duration <초>`
